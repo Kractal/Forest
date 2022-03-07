@@ -28,7 +28,7 @@ class EncryptedWxApkg:
                 print("Magic number is not V1MMWX, exit.")
                 exit(0)
         self.full_encrypted_wxapkg_file_path = full_encrypted_wxapkg_file_path
-    def unpack(self):
+    def decrypt_wxapkg(self):
         aes_cipher = AES.new(self.aes_key, AES.MODE_CBC, self.iv.encode())  # use CBC mode
         with open(self.full_encrypted_wxapkg_file_path, 'rb') as wxapkg_file:
             wxapkg_file.seek(6, 1)  # Offset 6 bytes from the start of the file to the end of the file.
@@ -36,14 +36,14 @@ class EncryptedWxApkg:
             decrypted_data_aes = aes_cipher.decrypt(encrypted_data_aes)
             with open(self.miniprogram_id, 'wb') as unpack_result:
                 unpack_result.write(decrypted_data_aes[0:len(decrypted_data_aes)-1])
-                temporary = wxapkg_file.read(1)
-                while temporary:
-                    unpack_result.write(bytes(a ^ b for (a, b) in zip(temporary, self.xor_key.encode())))
-                    temporary = wxapkg_file.read(1)
+                temp = wxapkg_file.read(1)
+                while temp:
+                    unpack_result.write(bytes(a ^ b for (a, b) in zip(temp, self.xor_key.encode())))
+                    temp = wxapkg_file.read(1)
 
 
 full_encrypted_wxapkg_file_path = "__APP__.wxapkg"
 miniprogram_id = "wx0bad87c71b11ea8c"
 encrypted_wxapkg_sample = EncryptedWxApkg(full_encrypted_wxapkg_file_path, miniprogram_id)
-encrypted_wxapkg_sample.unpack()
+encrypted_wxapkg_sample.decrypt_wxapkg()
 
